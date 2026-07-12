@@ -1,0 +1,28 @@
+﻿# Maven / Java
+/target/
+/password_manager/target/
+*.log
+
+# IntelliJ
+/.idea/
+*.iml
+
+# Mac / Windows
+.DS_Store
+Thumbs.db
+
+# OS generated
+ehthumbs.db
+Desktop.ini
+
+# IDE and build
+/.classpath
+/.project
+/.settings/
+
+# Coverage
+/coverage/
+target/
+
+# Custom Tools
+/tools/

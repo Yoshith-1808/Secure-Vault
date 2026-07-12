@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+
+<head th:replace="~{fragments/layout :: head('Home')}"></head>
+
+<body class="glass-bg">
+    <!-- Custom CSS for Landing Page -->
+    <style>
+        /* Base landing styles */
+        body {
+            overflow-x: hidden;
+        }
+
+        .landing-heading,
+        .landing-subheading {
+            color: #fff;
+            transition: color 0.4s var(--ease-liquid);
+        }
+
+        .landing-navbar {
+            background: rgba(13, 3, 5, 0.4) !important;
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            border-bottom: 1px solid rgba(196, 54, 90, 0.12);
+            transition: all 0.4s var(--ease-liquid);
+        }
+
+        .landing-navbar.scrolled {
+            background: rgba(13, 3, 5, 0.75) !important;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .hero-section {
+            padding: 8rem 0 6rem 0;
+            position: relative;
+            min-height: 95vh;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Floating 3D Shield Lock styling */
+        .hero-image-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-glow-orb {
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(196, 54, 90, 0.45) 0%, transparent 70%);
+            filter: blur(40px);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glass-container-3d {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 126, 151, 0.15);
+            border-radius: 32px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: float 6s ease-in-out infinite;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .hero-shield-img {
+            max-width: 380px;
+            border-radius: 20px;
+            transition: transform 0.4s var(--ease-liquid);
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px) rotateY(-3deg) rotateX(2deg); }
+            50% { transform: translateY(-15px) rotateY(3deg) rotateX(-2deg); }
+            100% { transform: translateY(0px) rotateY(-3deg) rotateX(2deg); }
+        }
+
+        /* Feature Cards Grid */
+        .feature-card {
+            background: linear-gradient(135deg, rgba(25, 3, 10, 0.5) 0%, rgba(13, 3, 5, 0.45) 100%);
+            border: 1px solid rgba(196, 54, 90, 0.15);
+            border-radius: 24px;
+            padding: 2.5rem;
+            transition: all 0.4s var(--ease-liquid);
+            height: 100%;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(196, 54, 90, 0.45);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(196, 54, 90, 0.1);
+        }
+
+        .feature-icon-wrapper {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            background: rgba(196, 54, 90, 0.12);
+            border: 1px solid rgba(196, 54, 90, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--rose-petal);
+            font-size: 1.6rem;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover .feature-icon-wrapper {
+            background: var(--rose-mid);
+            color: #fff;
+            box-shadow: 0 0 15px var(--rose-glow-soft);
+        }
+
+        /* Blog Section */
+        .blog-card {
+            background: linear-gradient(135deg, rgba(25, 3, 10, 0.45) 0%, rgba(13, 3, 5, 0.4) 100%);
+            border: 1px solid rgba(196, 54, 90, 0.15);
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.4s var(--ease-liquid);
+            height: 100%;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(196, 54, 90, 0.35);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.55);
+        }
+
+        .blog-img-wrapper {
+            position: relative;
+            overflow: hidden;
+            height: 200px;
+        }
+
+        .blog-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s var(--ease-liquid);
+        }
+
+        .blog-card:hover .blog-img {
+            transform: scale(1.06);
+        }
+
+        .blog-content {
+            padding: 2rem;
+        }
+
+        /* CTA Horizontal Banner */
+        .cta-banner-wrapper {
+            background: linear-gradient(135deg, rgba(30, 4, 12, 0.65) 0%, rgba(10, 1, 4, 0.55) 100%);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(196, 54, 90, 0.2);
+            border-top: 1px solid rgba(255, 126, 151, 0.25);
+            border-left: 1px solid rgba(255, 126, 151, 0.25);
+            border-radius: 36px;
+            padding: 4rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-banner-wrapper::before {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(196, 54, 90, 0.2) 0%, transparent 70%);
+            filter: blur(60px);
+            top: -200px;
+            right: -100px;
+            pointer-events: none;
+        }
+
+        /* System Status Pill */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.25);
+            font-size: 0.75rem;
+            color: #4ade80;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-pill-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            box-shadow: 0 0 8px #4ade80;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 12px #4ade80; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        /* ─── Light Mode Overrides ─── */
+        [data-bs-theme="light"] .landing-navbar {
+            background: rgba(253, 242, 244, 0.65) !important;
+            border-bottom: 1px solid rgba(196, 54, 90, 0.12);
+        }
+
+        [data-bs-theme="light"] .landing-navbar .nav-link,
+        [data-bs-theme="light"] .landing-navbar .navbar-brand span {
+            color: var(--rose-deepest) !important;
+        }
+
+        [data-bs-theme="light"] .landing-navbar .btn-outline-light {
+            color: var(--rose-deepest) !important;
+            border-color: var(--rose-deepest) !important;
+        }
+
+        [data-bs-theme="light"] .landing-navbar .btn-outline-light:hover {
+            background: var(--rose-deepest) !important;
+            color: #fff !important;
+        }
+
+        [data-bs-theme="light"] .landing-heading,
+        [data-bs-theme="light"] .landing-subheading {
+            color: var(--rose-deepest) !important;
+        }
+
+        [data-bs-theme="light"] .feature-card {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(196, 54, 90, 0.15);
+        }
+
+        [data-bs-theme="light"] .feature-card:hover {
+            box-shadow: 0 15px 40px rgba(139, 0, 36, 0.08), 0 0 25px rgba(196, 54, 90, 0.05);
+        }
+
+        [data-bs-theme="light"] .blog-card {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(196, 54, 90, 0.15);
+        }
+
+        [data-bs-theme="light"] .cta-banner-wrapper {
+            background: linear-gradient(135deg, rgba(253, 242, 244, 0.8) 0%, rgba(255, 240, 243, 0.7) 100%);
+            border: 1px solid rgba(196, 54, 90, 0.18);
+            box-shadow: 0 20px 50px rgba(139, 0, 36, 0.08);
+        }
+
+        [data-bs-theme="light"] .cta-banner-wrapper h2 {
+            color: var(--rose-deepest) !important;
+        }
+
+        [data-bs-theme="light"] .logo-item {
+            color: var(--rose-deepest) !important;
+        }
+    </style>
+
+    <!-- Custom Landing Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top py-3 landing-navbar" id="landingNavbar">
+        <div class="container px-4">
+            <a class="navbar-brand d-flex align-items-center fw-bold" th:href="@{/}">
+                <i class="bi bi-shield-lock-fill text-premium-gradient me-2 fs-3"></i>
+                <span class="fs-4 ls-1 landing-heading">SecureVault</span>
+            </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse"
+                data-bs-target="#landingNavbarContent">
+                <span class="navbar-toggler-icon" style="filter: invert(1) hue-rotate(340deg);"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="landingNavbarContent">
+                <ul class="navbar-nav mx-auto gap-2">
+                    <li class="nav-item"><a class="nav-link px-3 landing-heading" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link px-3 landing-heading" href="#insights">Insights</a></li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Light / Dark Switch -->
+                    <div class="form-check form-switch mb-0 me-2 d-flex align-items-center gap-2">
+                        <input class="form-check-input" type="checkbox" role="switch" id="landingThemeToggle"
+                            style="cursor: pointer; width: 2.2em; height: 1.1em;">
+                        <label class="form-check-label" for="landingThemeToggle">
+                            <i id="landingThemeIcon" class="bi bi-sun-fill text-warning"></i>
+                        </label>
+                    </div>
+
+                    <!-- If not logged in -->
+                    <div sec:authorize="isAnonymous()">
+                        <a th:href="@{/auth/login}" class="btn btn-outline-light rounded-pill px-4 btn-sm py-2">Sign In</a>
+                        <a th:href="@{/auth/register}"
+                            class="btn btn-primary rounded-pill px-4 ms-2 btn-sm py-2 btn-glass-shiny">Get Started</a>
+                    </div>
+                    <!-- If logged in -->
+                    <div sec:authorize="isAuthenticated()">
+                        <a th:href="@{/dashboard}"
+                            class="btn btn-primary rounded-pill px-4 btn-sm py-2 btn-glass-shiny">Go to Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container px-4">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="row align-items-center w-100 g-5">
+                <div class="col-lg-6">
+                    <span
+                        class="badge rounded-pill bg-danger bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 mb-4 animate__animated animate__fadeInDown d-inline-flex align-items-center gap-2">
+                        <i class="bi bi-shield-fill-check"></i> SECUREVAULT 2.0 IS LIVE
+                    </span>
+                    <h1 class="display-3 fw-bold mb-4 leading-tight animate__animated animate__fadeInLeft landing-heading">
+                        Your Ultimate Secure <span class="text-premium-gradient">Password Vault</span>
+                    </h1>
+                    <p class="lead text-muted mb-5 animate__animated animate__fadeInLeft animate__delay-1s"
+                        style="max-width: 540px;">
+                        Protect your digital identity with military-grade AES-256-GCM encryption. Zero-knowledge
+                        architecture, local key derivation, and seamless secure password generation.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3 animate__animated animate__fadeInLeft animate__delay-2s">
+                        <a th:href="@{/auth/register}"
+                            class="btn btn-primary btn-lg rounded-pill px-5 py-3 btn-glass-shiny fw-bold fs-6">Get
+                            Started</a>
+                        <a href="#features"
+                            class="btn btn-outline-secondary btn-lg rounded-pill px-5 py-3 text-white border-secondary fw-bold fs-6 hover-bg-opacity">Learn
+                            More</a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-image-wrapper animate__animated animate__zoomIn">
+                        <div class="hero-glow-orb"></div>
+                        <div class="glass-container-3d">
+                            <img th:src="@{/images/hero_shield_red.png}" alt="Secure Shield"
+                                class="img-fluid hero-shield-img">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Social Proof Stats Strip -->
+        <section class="py-5 my-5 border-top border-bottom border-secondary border-opacity-10">
+            <div class="text-center">
+                <p class="text-uppercase small tracking-widest text-muted mb-4 opacity-50 fw-bold">CRYPTOGRAPHIC
+                    STANDARDS & OPERATIONS</p>
+                <div class="d-flex flex-wrap justify-content-center align-items-center gap-5 opacity-75">
+                    <div class="d-flex align-items-center small fw-bold logo-item"><i
+                            class="bi bi-shield-check text-primary me-2 fs-5"></i>AES-256 GCM</div>
+                    <div class="d-flex align-items-center small fw-bold logo-item"><i
+                            class="bi bi-key text-primary me-2 fs-5"></i>PBKDF2 SHA-256</div>
+                    <div class="d-flex align-items-center small fw-bold logo-item"><i
+                            class="bi bi-qr-code text-primary me-2 fs-5"></i>TOTP 2FA</div>
+                    <div class="d-flex align-items-center small fw-bold logo-item"><i
+                            class="bi bi-incognito text-primary me-2 fs-5"></i>ZERO KNOWLEDGE</div>
+                    <div class="d-flex align-items-center small fw-bold logo-item"><i
+                            class="bi bi-shield-fill text-primary me-2 fs-5"></i>OWASP COMPLIANT</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Grid -->
+        <section id="features" class="py-5">
+            <div class="text-center mb-5 pb-3">
+                <h2 class="display-5 fw-bold mb-3 landing-heading">Unleash Ultimate <span
+                        class="text-premium-gradient">Security</span></h2>
+                <p class="text-muted mx-auto" style="max-width: 580px;">Protect, generate, and monitor all your
+                    credentials in a zero-knowledge ecosystem designed for absolute privacy.</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3 landing-subheading">Zero-Knowledge Vault</h4>
+                        <p class="text-muted mb-0 small" style="line-height: 1.6;">
+                            Your master password is never stored or transmitted. Encryption keys are derived locally on
+                            your device, ensuring your secrets remain visible only to you.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper">
+                            <i class="bi bi-shield-plus"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3 landing-subheading">Smart Generator</h4>
+                        <p class="text-muted mb-0 small" style="line-height: 1.6;">
+                            Instantly craft strong, random, and unbreakable passwords with customized settings (length,
+                            digits, special characters, avoid similar) to secure every login.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon-wrapper">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3 landing-subheading">Security Audits</h4>
+                        <p class="text-muted mb-0 small" style="line-height: 1.6;">
+                            Perform real-time checks on the health of your credentials. Detect weak, compromised, or
+                            reused passwords immediately and enhance your security score.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Insights (Blog) Section -->
+        <section id="insights" class="py-5 my-5">
+            <div class="text-center mb-5 pb-2">
+                <h2 class="display-5 fw-bold mb-3 landing-heading">Stay Inspired with Our Latest <span
+                        class="text-premium-gradient">Insights</span></h2>
+                <p class="text-muted mx-auto" style="max-width: 580px;">Insights and guidelines from our cyber security
+                    research team to keep your digital assets protected.</p>
+            </div>
+            <div class="row g-4">
+                <!-- Card 1 -->
+                <div class="col-md-4">
+                    <div class="blog-card">
+                        <div class="blog-img-wrapper">
+                            <img th:src="@{/images/blog_zero_knowledge_red.png}" alt="Zero Knowledge" class="blog-img animate__animated">
+                        </div>
+                        <div class="blog-content">
+                            <div class="d-flex gap-2 small text-muted mb-3">
+                                <span>Apr 8, 2026</span>
+                                <span>•</span>
+                                <span>5 min read</span>
+                            </div>
+                            <h5 class="fw-bold mb-3 landing-subheading">Why Zero-Knowledge Architecture Matters</h5>
+                            <p class="text-muted small mb-0" style="line-height: 1.6;">
+                                Explore how local-first decryption keys keep your vault secure even if the cloud server
+                                becomes compromised.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="col-md-4">
+                    <div class="blog-card">
+                        <div class="blog-img-wrapper">
+                            <img th:src="@{/images/blog_data_leak_red.png}" alt="Credential Stuffing" class="blog-img animate__animated">
+                        </div>
+                        <div class="blog-content">
+                            <div class="d-flex gap-2 small text-muted mb-3">
+                                <span>Mar 15, 2026</span>
+                                <span>•</span>
+                                <span>4 min read</span>
+                            </div>
+                            <h5 class="fw-bold mb-3 landing-subheading">How Password Reuse Leads to Data Breaches</h5>
+                            <p class="text-muted small mb-0" style="line-height: 1.6;">
+                                Dive into the mechanics of credential stuffing attacks and learn why distinct passwords
+                                are critical.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="col-md-4">
+                    <div class="blog-card">
+                        <div class="blog-img-wrapper">
+                            <img th:src="@{/images/blog_security_keys_red.png}" alt="2FA Security Keys" class="blog-img animate__animated">
+                        </div>
+                        <div class="blog-content">
+                            <div class="d-flex gap-2 small text-muted mb-3">
+                                <span>Feb 28, 2026</span>
+                                <span>•</span>
+                                <span>6 min read</span>
+                            </div>
+                            <h5 class="fw-bold mb-3 landing-subheading">Moving Beyond Vulnerable SMS Two-Factor Auth</h5>
+                            <p class="text-muted small mb-0" style="line-height: 1.6;">
+                                A detailed handbook to migrating your active accounts to authenticator app (TOTP) and hardware key validation.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-5">
+                <a href="#insights" class="btn btn-primary rounded-pill px-5 py-3 btn-glass-shiny fw-bold fs-6">Read More</a>
+            </div>
+        </section>
+
+        <!-- CTA Horizontal Banner -->
+        <section class="py-5 my-5">
+            <div class="cta-banner-wrapper">
+                <div class="row align-items-center g-4">
+                    <div class="col-md-8 text-start">
+                        <h2 class="display-5 fw-bold mb-3 landing-heading">Start Your Security <span
+                                class="text-premium-gradient">Journey Today</span></h2>
+                        <p class="text-muted lead mb-0" style="max-width: 580px;">
+                            Sign up now and experience the absolute protection of a local-first encrypted vault. No credit card
+                            required.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a th:href="@{/auth/register}"
+                            class="btn btn-primary btn-lg rounded-pill px-5 py-3 btn-glass-shiny shadow-lg fw-bold fs-6">Get
+                            Started Free</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Landing Footer -->
+    <footer class="py-5 border-top border-secondary border-opacity-10 bg-black bg-opacity-20 mt-5">
+        <div class="container px-4">
+            <div class="row g-4 align-items-center">
+                <div class="col-md-4 text-center text-md-start">
+                    <div class="d-flex align-items-center justify-content-center justify-content-md-start mb-2">
+                        <i class="bi bi-shield-lock-fill text-premium-gradient me-2 fs-4"></i>
+                        <span class="fs-5 ls-1 fw-bold landing-heading">SecureVault</span>
+                    </div>
+                    <p class="text-muted small mb-0">🔒 Professional zero-knowledge password protection system.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="status-pill mx-auto">
+                        <div class="status-pill-pulse"></div>
+                        ALL SYSTEMS OPERATIONAL • SECURE
+                    </div>
+                </div>
+                <div class="col-md-4 text-center text-md-end">
+                    <div class="d-flex justify-content-center justify-content-md-end gap-3 mb-2 small fw-bold">
+                        <a href="#" class="text-decoration-none text-muted hover-primary">Privacy Policy</a>
+                        <span class="text-secondary opacity-25">|</span>
+                        <a href="#" class="text-decoration-none text-muted hover-primary">Terms of Service</a>
+                    </div>
+                    <span class="small text-muted opacity-50">© 2026 SecureVault. All rights reserved.</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripting for scroll & toggle logic -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('landingNavbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('landingThemeToggle');
+        const themeIcon = document.getElementById('landingThemeIcon');
+        const html = document.documentElement;
+
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        themeToggle.checked = currentTheme === 'dark';
+        updateThemeIcon(currentTheme);
+
+        themeToggle.addEventListener('change', () => {
+            const nextTheme = themeToggle.checked ? 'dark' : 'light';
+            html.setAttribute('data-bs-theme', nextTheme);
+            localStorage.setItem('theme', nextTheme);
+            updateThemeIcon(nextTheme);
+
+            // Sync with global theme setting if user goes to login / dashboard
+            window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: nextTheme } }));
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                themeIcon.className = 'bi bi-moon-stars-fill';
+                themeIcon.style.color = 'var(--rose-petal)';
+            } else {
+                themeIcon.className = 'bi bi-sun-fill';
+                themeIcon.style.color = 'var(--rose-bright)';
+            }
+        }
+    </script>
+</body>
+
+</html>

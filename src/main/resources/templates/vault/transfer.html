@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Import/Export Data')}"></head>
+
+<body class="d-flex flex-column min-vh-100 bg-light" th:attr="data-bs-theme=${session.theme}">
+    <nav th:replace="~{fragments/layout :: navbar}"></nav>
+    <div class="container py-4 flex-grow-1">
+
+        <div class="row mb-4">
+            <div class="col-12 text-center">
+                <h2 class="fw-bold mb-2">Import / Export Backup</h2>
+                <p class="text-muted">Securely transfer your vault data using encrypted files.</p>
+            </div>
+        </div>
+
+        <!-- Alert Messages (Success/Error) -->
+        <div class="row justify-content-center mb-3 text-center" th:if="${success != null || error != null}">
+            <div class="col-lg-8">
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i><span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center gx-4 gy-4">
+
+            <!-- IMPORT CARD -->
+            <div class="col-md-6 col-lg-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h4 class="card-title fw-bold mb-3 d-flex align-items-center">
+                            <i class="bi bi-cloud-arrow-up text-primary me-2 fs-3"></i> Restore Backup
+                        </h4>
+                        <p class="text-muted small mb-4">
+                            Upload a previously exported <code>.enc</code> backup file. We'll decrypt it with the master
+                            password you provide and merge it into your current vault.
+                        </p>
+
+                        <form th:action="@{/vault/import}" method="post" enctype="multipart/form-data" class="mt-auto">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                            <div class="mb-3">
+                                <label class="form-label fw-medium small">Backup File (.enc)</label>
+                                <input type="file" name="file" class="form-control" accept=".enc" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-medium small">Confirm Master Password</label>
+                                <input type="password" name="masterPassword" class="form-control"
+                                    placeholder="Enter current master password" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 fw-bold">
+                                <i class="bi bi-upload me-2"></i> Import Entries
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXPORT CARD -->
+            <div class="col-md-6 col-lg-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4 d-flex flex-column">
+                        <h4 class="card-title fw-bold mb-3 d-flex align-items-center">
+                            <i class="bi bi-cloud-arrow-down text-success me-2 fs-3"></i> Create Backup
+                        </h4>
+                        <p class="text-muted small mb-4">
+                            Download your entire vault as an AES-256 encrypted file. This file can only be decrypted if
+                            you know the master password used to create it.
+                        </p>
+
+                        <form id="exportForm" th:action="@{/vault/export}" method="post" class="mt-auto">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                            <div class="mb-4">
+                                <label class="form-label fw-medium small">Confirm Master Password</label>
+                                <input type="password" name="masterPassword" class="form-control"
+                                    placeholder="Required for verifying export" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100 fw-bold">
+                                <i class="bi bi-download me-2"></i> Download .enc Backup
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Intercept Export to handle the file download purely on client side without redirecting from the current page state, keeping flashes intact.
+        document.getElementById('exportForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...';
+            submitBtn.disabled = true;
+
+            fetch(this.action, { method: 'POST', body: formData })
+                .then(response => {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        throw new Error('Incorrect master password or server error');
+                    }
+                })
+                .then(data => {
+                    const blob = new Blob([data], { type: 'application/octet-stream' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'vault-backup.enc';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    submitBtn.innerHTML = '<i class="bi bi-check2-all me-2"></i> Downloaded!';
+                    setTimeout(() => { submitBtn.innerHTML = originalText; submitBtn.disabled = false; this.reset(); }, 3000);
+                })
+                .catch(error => {
+                    alert(error.message);
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                });
+        });
+    </script>
+</body>
+
+</html>
